@@ -21,10 +21,10 @@ class Parser:
         self.cosine_similarity = []
 
     def read_books(self):
-        path_to_books = os.getcwd() + "\\books"
+        path_to_books = os.getcwd() + "/books"
         self.titles = os.listdir(path_to_books)
         for title in self.titles:
-            book = codecs.open(path_to_books + "\\" + title, "r", "utf-8-sig")
+            book = codecs.open(path_to_books + "/" + title, "r", "utf-8-sig")
             self.books.append(book.read())
 
     def parse_books(self):
@@ -49,6 +49,7 @@ class Parser:
         corr.style.background_gradient(cmap='coolwarm')
         sn.heatmap(corr, annot=True, fmt='g')
         plt.show()
+        plt.savefig('correlation_matrix.png')
 
     def read_and_parse(self):
         self.read_books()
