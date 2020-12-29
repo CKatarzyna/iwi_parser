@@ -1,30 +1,36 @@
-import re
 import os
 import codecs
+from sklearn.feature_extraction import text
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sn
-import networkx as nx
+
+CUSTOM_STOP_WORDS = ["a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an", "and",
+                     "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot", "could", "dear",
+                     "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get", "got", "had", "has",
+                     "have", "he", "her", "hers", "him", "his", "how", "however", "i", "if", "in", "into", "is", "it",
+                     "its", "just", "least", "let", "like", "likely", "may", "me", "might", "miss", "most", "mr",
+                     "must", "my", "neither", "no", "nor", "not", "of", "off", "often", "on", "only", "or", "other",
+                     "our", "own", "rather", "said", "say", "says", "she", "should", "since", "so", "some", "than",
+                     "that", "the", "their", "them", "then", "there", "these", "they", "this", "tis", "to", "too",
+                     "twas", "us", "wants", "was", "we", "were", "what", "when", "where", "which", "while", "who",
+                     "whom", "why", "will", "with", "would", "yet", "you", "your"]
 
 
 class Parser:
     def __init__(self):
+        self.directory_root = "/books"
+        self.books_similarity_file_name = 'books_similarity.csv'
         self.titles = []
         self.books = []
-        self.parsered_books = []
         self.books_dictionary = []
         self.sparse_matrix = []
-        self.count_vectorizer = CountVectorizer(stop_words='english')
-        self.count_vectorizer = CountVectorizer()
+        self.count_vectorizer = CountVectorizer(stop_words=text.ENGLISH_STOP_WORDS.union(CUSTOM_STOP_WORDS))
         self.cosine_similarity = []
-        self.correlation = []
 
     def read_books(self):
-        path_to_books = os.getcwd() + "/books"  # TODO: check if correct on windows
-        #path_to_books = os.getcwd() + "/iwi_parser/books"  - need to debug TODO: remove later
+        path_to_books = os.getcwd() + self.directory_root
         self.titles = os.listdir(path_to_books)
         for title in self.titles:
             book = codecs.open(path_to_books + "/" + title, "r", "utf-8-sig")
@@ -32,7 +38,6 @@ class Parser:
 
     def parse_books(self):
         self.sparse_matrix = self.count_vectorizer.fit_transform(self.books)
-        # print(self.sparse_matrix)
 
     def create_df(self):
         doc_term_matrix = self.sparse_matrix.todense()
@@ -45,54 +50,23 @@ class Parser:
         self.cosine_similarity = cosine_similarity(df, df)
         print(self.cosine_similarity)
 
-    def draw_correlation_matrix(self):
+    def create_books_similarity_file(self):
         df = pd.DataFrame(self.cosine_similarity, columns=self.titles, index=self.titles)
-        print(df)
-        corr = df
-        corr.style.background_gradient(cmap='coolwarm')
-        sn.heatmap(corr, annot=True, fmt='g')
-        plt.show()
-        plt.savefig('correlation_matrix.png')
-        #clear plot
-        plt.clf()
-        self.correlation= df
 
-    def read_and_parse(self):
-        self.read_books()
-        # self.loaded_books()
-        self.parse_books()
-        df = self.create_df()
-        print(df)
-        self.count_cosine_similarity(df)
-        self.draw_correlation_matrix()
+        file = open(self.books_similarity_file_name, 'w', encoding='mac_roman')
+        file_content = "Source,Target,Weight\n"
+        for index, data in df.stack().iteritems():
+            if index[0] != index[1]:
+                if '{}, {}, {} \n'.format(index[1], index[0], str(data)) not in file_content:
+                    file_content += ('{},{},{} \n'.format(index[0], index[1], str(data)))
 
-    def print_graph(self):   
-        # Transform it in a links data frame (3 columns only):
-        links = self.correlation.stack().reset_index()
-        links.columns = ['var1', 'var2','value']
-        G = nx.Graph()
-        # Keep only correlation over a threshold and remove self correlation (cor(A,A)=1)
-        threshold = 0.81
-        links_filtered=links.loc[ (links['value'] > threshold) & (links['var1'] != links['var2'])]
-
-        for i, row in links_filtered.iterrows():
-            G.add_edge(row['var1'], row['var2'], weight = round(row['value'],2))
-
-        node_pos=nx.spring_layout(G) # pos = nx.nx_agraph.graphviz_layout(G)
-        labels = nx.get_edge_attributes(G,'weight')
-        node_col='red'
-        # draw graph
-        nx.draw_networkx(G, node_pos,node_color= node_col, node_size=40, font_size=6,linewidths=1)
-        # Draw weights
-        nx.draw_networkx_edge_labels(G, node_pos, edge_labels=labels, font_size=5)
-        plt.savefig('plotgraph.png', dpi=600)
- 
-
-    def loaded_books(self):
-        for title in self.titles:
-            print(title)
+        file.write(file_content)
+        file.close()
 
 
-parser = Parser()
-parser.read_and_parse()
-parser.print_graph()
+if __name__ == '__main__':
+    parser_books = Parser()
+    parser_books.read_books()
+    parser_books.parse_books()
+    parser_books.count_cosine_similarity(parser_books.create_df())
+    parser_books.create_books_similarity_file()
