@@ -67,7 +67,7 @@ class Viewer:
 if __name__ == '__main__':
     viewer_books = Viewer()
     viewer_books.load_data_form_csv_file("books_similarity.csv")
-    viewer_books.set_threshold(0.6)
+    viewer_books.set_threshold(0.5)
     viewer_books.generate_graph()
     viewer_books.show_graph()
     viewer_books.customize_site_html()

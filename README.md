@@ -20,6 +20,11 @@ This academic projects is focused on visualization of documents similarities. Th
 
 Demo of the generated `books_connection_viewer.html` site.
 
+### Simple test of correctness 
+
+Added few books to catalog `/manual_downloaded_books` : 7 parts of "Harry Potter", 4 parts of "Lord of the Rings" and 3 parts of "Star Wars".\
+To use it needed to change arg in Parser from `/book` to `/manual_downloaded_books`
+
 <p align="center">
   <br/>
   <img src="https://github.com/CKatarzyna/iwi_parser/blob/main/resource/demo.gif">

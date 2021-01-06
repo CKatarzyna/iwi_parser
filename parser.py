@@ -19,8 +19,8 @@ CUSTOM_STOP_WORDS = ["a", "able", "about", "across", "after", "all", "almost", "
 
 
 class Parser:
-    def __init__(self):
-        self.directory_root = "/books"
+    def __init__(self,books_directory):
+        self.directory_root = books_directory
         self.books_similarity_file_name = 'books_similarity.csv'
         self.titles = []
         self.books = []
@@ -32,7 +32,8 @@ class Parser:
     def read_books(self):
         path_to_books = os.getcwd() + self.directory_root
         self.titles = os.listdir(path_to_books)
-        self.titles.remove('.gitignore')
+        if '.gitignore' in self.titles:
+            self.titles.remove('.gitignore')
         for title in self.titles:
             book = codecs.open(path_to_books + "/" + title, "r", "utf-8-sig")
             self.books.append(book.read())
@@ -66,7 +67,7 @@ class Parser:
 
 
 if __name__ == '__main__':
-    parser_books = Parser()
+    parser_books = Parser("/books")
     parser_books.read_books()
     parser_books.parse_books()
     parser_books.count_cosine_similarity(parser_books.create_df())
