@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import urllib.request
 import requests
-
+from collections import defaultdict
 from pyvis.network import Network
 import pandas as pd
 import os
@@ -29,19 +29,20 @@ class Viewer:
         weights = self.data['Weight']
 
         edge_data = zip(sources, targets, weights)
+        weight_dist = defaultdict(list)
         for edge in edge_data:
             source = edge[0]
             target = edge[1]
             weight = edge[2]
-
             if self.threshold < weight:
                 self.net.add_node(source, source, title=f"<h4>{source}</h4>", shape="dot", value=weight)
                 self.net.add_node(target, target, title=f"<h4>{target}</h4>", shape="dot", value=weight)
                 self.net.add_edge(source, target, width=1)
+                weight_dist[source].append(weight)
 
         neighbor_map = self.net.get_adj_list()
         for node in self.net.nodes:
-            node["title"] += "<li>" + "</li><li>".join(neighbor_map[node["id"]])
+            node["title"] += "<li>" + "</li><li>".join('{} [{}]'.format(file, file_w) for file, file_w in zip(neighbor_map[node["id"]],[str("%.2f"%w) for w in weight_dist[node["id"]]]))
             node["value"] = len(neighbor_map[node["id"]])
 
     def customize_graph(self):

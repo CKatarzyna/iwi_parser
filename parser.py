@@ -32,10 +32,10 @@ class Parser:
     def read_books(self):
         path_to_books = os.getcwd() + self.directory_root
         self.titles = os.listdir(path_to_books)
+        self.titles.remove('.gitignore')
         for title in self.titles:
-            if title != '.gitignore':
-                book = codecs.open(path_to_books + "/" + title, "r", "utf-8-sig")
-                self.books.append(book.read())
+            book = codecs.open(path_to_books + "/" + title, "r", "utf-8-sig")
+            self.books.append(book.read())
 
     def parse_books(self):
         self.sparse_matrix = self.count_vectorizer.fit_transform(self.books)
